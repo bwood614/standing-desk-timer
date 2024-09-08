@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Standing Desk Timer",
+  "description": "An extension to to motivate you to stand up",
+  "version": "1.0",
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "Hi_image.png"
+  }
+}
