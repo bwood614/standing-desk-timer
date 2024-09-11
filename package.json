@@ -1,0 +1,36 @@
+{
+  "name": "standing-desk-timer",
+  "displayName": "Standing Desk Timer",
+  "version": "0.0.1",
+  "description": "An extension to motivate you to stand up.",
+  "author": "Conner&Brayden",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package",
+    "lint": "npx eslint ."
+  },
+  "dependencies": {
+    "plasmo": "0.89.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@ianvs/prettier-plugin-sort-imports": "4.1.1",
+    "@types/chrome": "0.0.258",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "20.11.5",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.2.18",
+    "eslint": "^9.10.0",
+    "prettier": "3.2.4",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.5.0"
+  },
+  "manifest": {
+    "host_permissions": [
+      "https://*/*"
+    ]
+  }
+}
