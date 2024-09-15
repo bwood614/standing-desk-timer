@@ -1,25 +1,28 @@
-import cssText from "data-text:~/contents/WidgetBar.css";
-import type { PlasmoCSConfig } from "plasmo";
-import { useEffect, useState } from "react";
+import cssText from 'data-text:~/contents/WidgetBar.css';
+import type { PlasmoCSConfig } from 'plasmo';
+import { useEffect, useState } from 'react';
 
-import Button from "~components/shared/Button";
+import Button from '../components/shared/Button';
+import ChairIcon from '../components/shared/icons/ChairIcon';
+import SettingsIcon from '../components/shared/icons/SettingsIcon';
 
 export const getStyle = () => {
-  const style = document.createElement("style");
+  const style = document.createElement('style');
   style.textContent = cssText;
   return style;
 };
 
 export const config: PlasmoCSConfig = {
-  matches: ["*://*/*"]
+  matches: ['*://*/*']
 };
 
 const WidgetBar = () => {
   const [timeInSeconds, setTimeInSeconds] = useState<number>(0);
+  const [isStanding, setIsStanding] = useState<boolean>(false);
 
   const formatTime = (seconds: number) => {
-    const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
-    const secs = String(seconds % 60).padStart(2, "0");
+    const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const secs = String(seconds % 60).padStart(2, '0');
     return `${minutes}:${secs}`;
   };
 
@@ -42,9 +45,23 @@ const WidgetBar = () => {
     <div className="widget-bar">
       <div className="timer-container">{formatTime(timeInSeconds)}</div>
       <Button
-        text={"Hello"}
+        text={isStanding ? 'Standing' : 'Sitting'}
+        contentColor={'white'}
+        backgroundColor={isStanding ? '#C1E1C1' : '#ffb9b9'}
         onClick={() => {
-          console.log("Hello");
+          setIsStanding((current) => !current);
+          setTimeInSeconds(0);
+        }}
+        width={120}
+        customStyle={{ marginRight: 20 }}
+      />
+      <Button
+        icon={SettingsIcon}
+        isTransparent
+        contentColor={'grey'}
+        onClick={() => {
+          console.log('Hello');
+          alert('To settings page');
         }}
       />
     </div>
