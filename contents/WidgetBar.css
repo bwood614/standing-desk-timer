@@ -2,13 +2,13 @@
   position: fixed;
   bottom: 50px;
   right: 0;
-  width: 250px;
+  width: 260px;
   height: 50px;
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
+  padding: 0 8px;
   border-radius: 8px 0 0 8px;
   /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
   box-shadow:
@@ -18,10 +18,12 @@
   font-family: 'Arial', sans-serif;
   font-weight: bold;
   color: grey;
+  transition: right 0.3s;
+  transition-timing-function: ease-out;
 }
 
 .timer-container {
-  width: 60px;
+  width: 55px;
   font-size: 20px;
 }
 

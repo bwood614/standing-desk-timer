@@ -5,10 +5,10 @@ import type { IconProps } from './icons/IconProps';
 interface ButtonProps {
   text?: string;
   onClick?: () => void;
-  icon?: ({ width, height, color }: IconProps) => JSX.Element;
+  icon?: JSX.Element;
   isTransparent?: boolean;
   backgroundColor?: string;
-  contentColor?: string;
+  textColor?: string;
   width?: number;
   customStyle?: CSSProperties;
 }
@@ -16,16 +16,16 @@ interface ButtonProps {
 const Button = ({
   text,
   onClick,
-  icon: Icon,
+  icon,
   isTransparent = false,
   backgroundColor = '#a3c9ff',
-  contentColor = '#ffffff',
+  textColor = '#ffffff',
   width,
   customStyle
 }: ButtonProps) => {
   const styles = buildStyle(
     isTransparent ? 'transparent' : backgroundColor,
-    contentColor,
+    textColor,
     width,
     isTransparent,
     customStyle
@@ -39,7 +39,7 @@ const Button = ({
           onClick();
         }}>
         {!!text && text}
-        {!!Icon && <Icon color={contentColor} width={24} height={24} />}
+        {!!icon && icon}
       </button>
     </>
   );
