@@ -23,8 +23,8 @@ const WidgetBar = () => {
   const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout>();
-  const [updateCount, setUpdateCount] = useState<number>(0);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
+  const [tabChangeCount, setTabChangeCount] = useState<number>(0);
 
   const widgetBarRef = useRef<HTMLDivElement>();
 
@@ -42,7 +42,7 @@ const WidgetBar = () => {
     console.log('Adding new listener');
     chrome.runtime.onMessage.addListener(
       (_message: any, _sender: any, _sendResponse: any) => {
-        setUpdateCount((curr) => curr + 1);
+        setTabChangeCount((curr) => curr + 1);
       }
     );
   }, []);
@@ -60,27 +60,30 @@ const WidgetBar = () => {
       const _timeInMiliseconds = Date.now() - startTime;
       setTimeInMiliseconds(_timeInMiliseconds);
 
-      // kickoff timer
-      clearTimeout(timeoutId);
+      // clear previous interval
+      clearInterval(intervalId);
+
+      // initial timeout will be some fraction of a second
       const initialTimeout = 1_000 - (_timeInMiliseconds % 1_000);
-      console.log(
-        'Wait partial second to start timer (ON MOUNT)',
-        initialTimeout
-      );
-      setTimeoutId(setTimeout(incrementTimer, initialTimeout));
+
+      setTimeout(() => {
+        setTimeInMiliseconds(Date.now() - startTime);
+        startTimerInterval();
+      }, initialTimeout);
     };
 
     setInitTimeInMilisseconds();
 
     return () => {
-      clearTimeout(timeoutId);
+      clearInterval(intervalId);
     };
-  }, [updateCount]);
+  }, [tabChangeCount]);
 
-  const incrementTimer = () => {
-    console.log('Increment Time by 1 second');
-    setTimeInMiliseconds((currTime) => currTime + 1_000);
-    setTimeoutId(setTimeout(incrementTimer, 1_000));
+  const startTimerInterval = () => {
+    const intervalId = setInterval(() => {
+      setTimeInMiliseconds((currTime) => currTime + 1_000);
+    }, 1000);
+    setIntervalId(intervalId);
   };
 
   const startTimer = async () => {
