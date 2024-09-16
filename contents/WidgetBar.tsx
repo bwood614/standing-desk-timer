@@ -1,6 +1,8 @@
 import cssText from 'data-text:~/contents/WidgetBar.css';
 import type { PlasmoCSConfig } from 'plasmo';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { sendToBackground } from '@plasmohq/messaging';
 
 import Button from '../components/shared/Button';
 import ChevronLeft from '../components/shared/icons/ChevronLeft';
@@ -14,36 +16,87 @@ export const getStyle = () => {
 };
 
 export const config: PlasmoCSConfig = {
-  matches: ['*://*/*']
+  matches: ['<all_urls>']
 };
 
 const WidgetBar = () => {
-  const [timeInSeconds, setTimeInSeconds] = useState<number>(0);
+  const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout>();
+  const [updateCount, setUpdateCount] = useState<number>(0);
 
   const widgetBarRef = useRef<HTMLDivElement>();
 
-  const formatTime = (seconds: number) => {
-    const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
-    const secs = String(seconds % 60).padStart(2, '0');
+  const formatTime = (miliseconds: number) => {
+    const minutes = String(Math.floor(miliseconds / 60000)).padStart(2, '0');
+    const secs = String(Math.floor((miliseconds % 60000) / 1000)).padStart(
+      2,
+      '0'
+    );
     return `${minutes}:${secs}`;
   };
 
+  // on tab active,
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    console.log('Adding new listener');
+    chrome.runtime.onMessage.addListener(
+      (_message: any, _sender: any, _sendResponse: any) => {
+        setUpdateCount((curr) => curr + 1);
+      }
+    );
+  }, []);
 
-    const incrementTimer = () => {
-      setTimeInSeconds((currTime) => currTime + 1);
-      timeoutId = setTimeout(incrementTimer, 1_000);
+  // on component mount, get timer in seconds and kickoff timer
+  useEffect(() => {
+    const setInitTimeInMilisseconds = async () => {
+      const resp = await sendToBackground({
+        name: 'widgetBarLoad',
+        extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje' // find this in chrome's extension manager
+      });
+      const { startTime } = resp;
+
+      // calculate timer time in miliseconds
+      const _timeInMiliseconds = Date.now() - startTime;
+      setTimeInMiliseconds(_timeInMiliseconds);
+
+      // kickoff timer
+      clearTimeout(timeoutId);
+      const initialTimeout = 1_000 - (_timeInMiliseconds % 1_000);
+      console.log(
+        'Wait partial second to start timer (ON MOUNT)',
+        initialTimeout
+      );
+      setTimeoutId(setTimeout(incrementTimer, initialTimeout));
     };
 
-    timeoutId = setTimeout(incrementTimer, 1_000);
+    setInitTimeInMilisseconds();
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [timeInSeconds]);
+  }, [updateCount]);
+
+  const incrementTimer = () => {
+    console.log('Increment Time by 1 second');
+    setTimeInMiliseconds((currTime) => currTime + 1_000);
+    setTimeoutId(setTimeout(incrementTimer, 1_000));
+  };
+
+  const startTimer = async () => {
+    setTimeInMiliseconds(0);
+
+    // stores startTime in chrome storage so that all tabs can be in sync
+    const resp = await sendToBackground({
+      name: 'startTimer',
+      body: {
+        startTime: Date.now()
+      },
+      extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje' // find this in chrome's extension manager
+    });
+
+    console.log(resp);
+  };
 
   const toggleWidgetBar = () => {
     const widgetBarEl = widgetBarRef.current;
@@ -71,14 +124,14 @@ const WidgetBar = () => {
           toggleWidgetBar();
         }}
       />
-      <div className="timer-container">{formatTime(timeInSeconds)}</div>
+      <div className="timer-container">{formatTime(timeInMiliseconds)}</div>
       <Button
         text={isStanding ? 'Standing' : 'Sitting'}
         textColor={'white'}
         backgroundColor={isStanding ? '#C1E1C1' : '#ffb9b9'}
         onClick={() => {
           setIsStanding((current) => !current);
-          setTimeInSeconds(0);
+          startTimer();
         }}
         width={120}
         customStyle={{ marginRight: 5 }}
