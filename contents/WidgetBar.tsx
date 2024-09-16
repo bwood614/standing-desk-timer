@@ -24,7 +24,6 @@ const WidgetBar = () => {
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
-  const [tabChangeCount, setTabChangeCount] = useState<number>(0);
 
   const widgetBarRef = useRef<HTMLDivElement>();
 
@@ -37,68 +36,76 @@ const WidgetBar = () => {
     return `${minutes}:${secs}`;
   };
 
-  // on tab active,
+  // this function will refresh the local timer by syncing it with the timer start time saved in chrome storage
+  // this needs to happen on page reloads and tab switches to ensure an acurate timer value
+  const refreshLocalTimer = useCallback(async () => {
+    const resp = await sendToBackground({
+      name: 'getGlobalStartTime',
+      extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje' // find this in chrome's extension manager
+    });
+    const { startTime } = resp;
+
+    // calculate timer time in miliseconds
+    const _timeInMiliseconds = Date.now() - startTime;
+    setTimeInMiliseconds(_timeInMiliseconds);
+
+    // clear previous interval
+    clearInterval(intervalId);
+
+    // initial timeout will be some fraction of a second
+    const initialTimeout = 1000 - (_timeInMiliseconds % 1000);
+
+    setTimeout(() => {
+      setTimeInMiliseconds(Date.now() - startTime);
+      startLocalTimerInterval();
+    }, initialTimeout);
+  }, [intervalId]);
+
+  // on component mount, refresh the local timer (this handles initial page loads and reloads)
   useEffect(() => {
-    console.log('Adding new listener');
-    chrome.runtime.onMessage.addListener(
-      (_message: any, _sender: any, _sendResponse: any) => {
-        setTabChangeCount((curr) => curr + 1);
-      }
-    );
+    refreshLocalTimer();
   }, []);
 
-  // on component mount, get timer in seconds and kickoff timer
+  // set up message listener to listen to messages from background script
   useEffect(() => {
-    const setInitTimeInMilisseconds = async () => {
-      const resp = await sendToBackground({
-        name: 'widgetBarLoad',
-        extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje' // find this in chrome's extension manager
-      });
-      const { startTime } = resp;
-
-      // calculate timer time in miliseconds
-      const _timeInMiliseconds = Date.now() - startTime;
-      setTimeInMiliseconds(_timeInMiliseconds);
-
-      // clear previous interval
-      clearInterval(intervalId);
-
-      // initial timeout will be some fraction of a second
-      const initialTimeout = 1_000 - (_timeInMiliseconds % 1_000);
-
-      setTimeout(() => {
-        setTimeInMiliseconds(Date.now() - startTime);
-        startTimerInterval();
-      }, initialTimeout);
+    const handleMessage = (message: any, _sender: any, _sendResponse: any) => {
+      console.log(message);
+      if (message === 'tab_is_active') {
+        refreshLocalTimer();
+      } else if (message === 'tab_is_inactive') {
+        // clean up interval since timer will be refreshed when this tab is active again
+        clearInterval(intervalId);
+      }
     };
-
-    setInitTimeInMilisseconds();
-
+    // this adds a new message listener on mount, and when the refreshLocalTimer callback is updated
+    chrome.runtime.onMessage.addListener(handleMessage);
     return () => {
-      clearInterval(intervalId);
+      // clean up old listener when refreshLocalTimer callback is updated
+      chrome.runtime.onMessage.removeListener(handleMessage);
     };
-  }, [tabChangeCount]);
+  }, [refreshLocalTimer]);
 
-  const startTimerInterval = () => {
-    const intervalId = setInterval(() => {
-      setTimeInMiliseconds((currTime) => currTime + 1_000);
+  // adds 1000 miliseconds to the local timer state every 1000 miliseconds
+  // this also sets the intervalId state so that the interval can be canceled when the tab is inactive
+  const startLocalTimerInterval = () => {
+    const _intervalId = setInterval(() => {
+      setTimeInMiliseconds((currTime) => currTime + 1000);
     }, 1000);
-    setIntervalId(intervalId);
+    setIntervalId(_intervalId);
   };
 
-  const startTimer = async () => {
+  const resetGlobalTimer = async () => {
+    // reset local timer to 0 as well
     setTimeInMiliseconds(0);
 
     // stores startTime in chrome storage so that all tabs can be in sync
     const resp = await sendToBackground({
-      name: 'startTimer',
+      name: 'setGlobalStartTime',
       body: {
         startTime: Date.now()
       },
       extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje' // find this in chrome's extension manager
     });
-
-    console.log(resp);
   };
 
   const toggleWidgetBar = () => {
@@ -134,7 +141,7 @@ const WidgetBar = () => {
         backgroundColor={isStanding ? '#C1E1C1' : '#ffb9b9'}
         onClick={() => {
           setIsStanding((current) => !current);
-          startTimer();
+          resetGlobalTimer();
         }}
         width={120}
         customStyle={{ marginRight: 5 }}
