@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { sendToBackground } from '@plasmohq/messaging';
 
+import { Message } from '~utils/Messages';
+
 import Button from '../components/shared/Button';
 import ChevronLeft from '../components/shared/icons/ChevronLeft';
 import ChevronRight from '../components/shared/icons/ChevronRight';
@@ -24,6 +26,7 @@ const WidgetBar = () => {
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
+  const [isTabActive, setIsTabActive] = useState<boolean>(true);
 
   const widgetBarRef = useRef<HTMLDivElement>();
 
@@ -69,12 +72,13 @@ const WidgetBar = () => {
   // set up message listener to listen to messages from background script
   useEffect(() => {
     const handleMessage = (message: any, _sender: any, _sendResponse: any) => {
-      console.log(message);
-      if (message === 'tab_is_active') {
+      if (message === Message.TAB_IS_ACTIVE && !isTabActive) {
         refreshLocalTimer();
-      } else if (message === 'tab_is_inactive') {
+        setIsTabActive(true);
+      } else if (message === Message.TAB_IS_INACTIVE && isTabActive) {
         // clean up interval since timer will be refreshed when this tab is active again
         clearInterval(intervalId);
+        setIsTabActive(false);
       }
     };
     // this adds a new message listener on mount, and when the refreshLocalTimer callback is updated
@@ -83,7 +87,7 @@ const WidgetBar = () => {
       // clean up old listener when refreshLocalTimer callback is updated
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
-  }, [refreshLocalTimer]);
+  }, [refreshLocalTimer, isTabActive]);
 
   // adds 1000 miliseconds to the local timer state every 1000 miliseconds
   // this also sets the intervalId state so that the interval can be canceled when the tab is inactive
