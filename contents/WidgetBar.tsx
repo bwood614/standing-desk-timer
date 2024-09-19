@@ -77,7 +77,7 @@ const WidgetBar = () => {
 
   // set up message listener to listen to messages from background script
   useEffect(() => {
-    const handleMessage = (message: any, _sender: any, _sendResponse: any) => {
+    const handleMessage = (message: Message) => {
       if (message === Message.TAB_IS_ACTIVE && !isTabActive) {
         refreshLocalTimer();
         setIsTabActive(true);
@@ -109,7 +109,7 @@ const WidgetBar = () => {
     setTimeInMiliseconds(0);
 
     // stores startTime in chrome storage so that all tabs can be in sync
-    const resp = await sendToBackground({
+    await sendToBackground({
       name: 'setGlobalStartTime',
       body: {
         startTime: Date.now()
