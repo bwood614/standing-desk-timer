@@ -30,6 +30,12 @@ const WidgetBar = () => {
 
   const widgetBarRef = useRef<HTMLDivElement>();
 
+  const openSettings = useCallback(() => {
+    const settingsUrl = chrome.runtime.getURL('tabs/settings.html');
+    console.log('Opening settings...', settingsUrl);
+    window.open(settingsUrl, '_blank');
+  }, []);
+
   const formatTime = (miliseconds: number) => {
     const minutes = String(Math.floor(miliseconds / 60000)).padStart(2, '0');
     const secs = String(Math.floor((miliseconds % 60000) / 1000)).padStart(
@@ -153,10 +159,7 @@ const WidgetBar = () => {
       <Button
         icon={<SettingsIcon color="grey" height={24} />}
         isTransparent
-        onClick={() => {
-          console.log('Hello');
-          alert('To settings page');
-        }}
+        onClick={() => openSettings()}
         customStyle={{ marginRight: 6 }}
       />
     </div>
