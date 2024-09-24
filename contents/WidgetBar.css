@@ -18,6 +18,7 @@
   font-family: 'Arial', sans-serif;
   font-weight: bold;
   color: grey;
+  transition-timing-function: ease-out;
 }
 
 .timer-container {

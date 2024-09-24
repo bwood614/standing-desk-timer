@@ -81,14 +81,16 @@ const WidgetBar = () => {
     ) => {
       switch (message.id) {
         case 'tab_status_changed':
+          // tab bacame active
           if (message.payload.isActive && !isTabActive) {
             setIsTabActive(true);
             refreshWidgetState();
-          } else if (!message.payload.isActive && isTabActive) {
+          }
+          // tab bacame inactive
+          else if (!message.payload.isActive && isTabActive) {
             setIsTabActive(false);
             // turn off widget bar animation styles
             widgetBarRef.current.style.transition = 'none';
-            widgetBarRef.current.style.transitionTimingFunction = 'none';
             // clean up interval since timer will be refreshed when this tab is active again
             intervalIds.forEach((interval) => {
               clearInterval(interval);
@@ -132,7 +134,6 @@ const WidgetBar = () => {
         onClick={() => {
           // turn on widget bar animation styles
           widgetBarRef.current.style.transition = 'right 0.3s';
-          widgetBarRef.current.style.transitionTimingFunction = 'ease-out';
 
           setIsExpanded((current) => {
             setGlobalWidgetState({
