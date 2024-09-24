@@ -1,9 +1,9 @@
-import { Message } from '../utils/Messages';
+import { sendTabMessage } from '../messaging/toContent';
 
 // state
 let activeTabs: chrome.tabs.TabActiveInfo[] = [];
 
-// returns old active tab if one exists, otherwise null
+// returns arrays of active tab updates
 const getActiveTabUpdates = async () => {
   const prevActiveTabs = [...activeTabs];
   let newActiveTabs: chrome.tabs.TabActiveInfo[];
@@ -38,29 +38,17 @@ const getActiveTabUpdates = async () => {
 const sendTabActiveStatusMessages = async () => {
   const activeTabUpdates = await getActiveTabUpdates();
   activeTabUpdates.becameActive.forEach(async (tab) => {
-    try {
-      await chrome.tabs.sendMessage(tab.tabId, Message.TAB_IS_ACTIVE);
-      console.log(
-        `Successfully sent message: ${Message.TAB_IS_ACTIVE} to tab: ${tab.tabId}`
-      );
-    } catch (e) {
-      console.log(
-        `Could not connect to tab: ${tab.tabId}; intended message: ${Message.TAB_IS_ACTIVE}`
-      );
-    }
+    sendTabMessage(tab.tabId, {
+      id: 'tab_status_changed',
+      payload: { isActive: true }
+    });
   });
 
   activeTabUpdates.becameInactive.forEach(async (tab) => {
-    try {
-      await chrome.tabs.sendMessage(tab.tabId, Message.TAB_IS_INACTIVE);
-      console.log(
-        `Successfully sent message: ${Message.TAB_IS_INACTIVE} to tab: ${tab.tabId}`
-      );
-    } catch (e) {
-      console.log(
-        `Could not connect to tab: ${tab.tabId}; intended message: ${Message.TAB_IS_INACTIVE}`
-      );
-    }
+    sendTabMessage(tab.tabId, {
+      id: 'tab_status_changed',
+      payload: { isActive: false }
+    });
   });
 };
 

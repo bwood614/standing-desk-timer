@@ -18,7 +18,6 @@
   font-family: 'Arial', sans-serif;
   font-weight: bold;
   color: grey;
-  transition: right 0.3s;
   transition-timing-function: ease-out;
 }
 
