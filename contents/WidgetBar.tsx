@@ -3,7 +3,7 @@ import type { PlasmoCSConfig } from 'plasmo';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import alarmAudioSrc from 'url:../alarm.wav';
 
-import type { TabMessage } from '~messaging/types';
+import useTabMessages from '~hooks/useTabMessages';
 import { formatTime } from '~utils/timerUtils';
 
 import Button from '../components/shared/Button';
@@ -34,7 +34,6 @@ const WidgetBar = () => {
   const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [isTabActive, setIsTabActive] = useState<boolean>(true);
 
   // refs
   const intervalIds = useRef<NodeJS.Timeout[]>([]);
@@ -93,49 +92,29 @@ const WidgetBar = () => {
     }, initialTimeout);
   }, [intervalIds, setIsExpanded, setIsStanding]);
 
+  useTabMessages({
+    onTabActive: () => {
+      refreshWidgetState();
+    },
+    onTabInactive: () => {
+      // turn off widget bar animation styles
+      widgetBarRef.current.style.transition = 'none';
+      // clean up interval so it doesn't run in the background uneccessarily
+      intervalIds.current.forEach((interval) => {
+        clearInterval(interval);
+      });
+      intervalIds.current = [];
+    },
+    onGlobalStateChange: () => {
+      refreshWidgetState();
+    },
+    dependecies: [refreshWidgetState]
+  });
+
   // on component mount, refresh all local state (this handles initial page loads and reloads)
   useEffect(() => {
     refreshWidgetState();
   }, []);
-
-  // set up message listener to listen to messages from background script
-  useEffect(() => {
-    const handleMessage = (
-      message: TabMessage,
-      _sender: any,
-      _sendResponse: (arg: any) => void
-    ) => {
-      switch (message.id) {
-        case 'tab_status_changed':
-          // tab bacame active
-          if (message.payload.isActive && !isTabActive) {
-            setIsTabActive(true);
-            refreshWidgetState();
-          }
-          // tab bacame inactive
-          else if (!message.payload.isActive && isTabActive) {
-            setIsTabActive(false);
-            // turn off widget bar animation styles
-            widgetBarRef.current.style.transition = 'none';
-            // clean up interval since timer will be refreshed when this tab is active again
-            intervalIds.current.forEach((interval) => {
-              clearInterval(interval);
-            });
-            intervalIds.current = [];
-          }
-          return false;
-        case 'widget_state_changed':
-          refreshWidgetState();
-          return false;
-      }
-    };
-    // get a fresh messge listener on page load and when the refreshWidgetState callback is updated
-    chrome.runtime.onMessage.addListener(handleMessage);
-    return () => {
-      // clean up old listener when refreshWidgetState callback is updated
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
-  }, [refreshWidgetState, isTabActive]);
 
   return (
     <div className="widget-bar" id={'widgetBar'} ref={widgetBarRef}>
