@@ -35,7 +35,18 @@
       "https://*/*"
     ],
     "permissions": [
-      "tabs"
+      "tabs",
+      "scripting"
+    ],
+    "web_accessible_resources": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "resources": [
+          "alarm.wav"
+        ]
+      }
     ]
   }
 }

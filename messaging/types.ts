@@ -25,9 +25,15 @@ export type SetWidgetStateMessage =
       key: 'isStanding';
       value: boolean;
       notifyActiveTabs?: boolean;
+    }
+  | {
+      key: 'audibleAlarmTabId';
+      value: boolean;
+      notifyActiveTabs?: boolean;
     };
 
 export type GetWidgetStateMessage =
   | 'timerStartTime'
   | 'isWidgetExpanded'
-  | 'isStanding';
+  | 'isStanding'
+  | 'audibleAlarmTabId';

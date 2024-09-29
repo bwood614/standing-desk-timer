@@ -18,7 +18,48 @@
   font-family: 'Arial', sans-serif;
   font-weight: bold;
   color: grey;
+  transition: right 0.3s;
   transition-timing-function: ease-out;
+}
+
+.pulse {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  border-radius: 8px 0 0 8px;
+  left: 0px;
+  box-shadow: 0 0 0 rgba(255, 8, 8, 0.4);
+  animation: pulse 2s infinite;
+  pointer-events: none;
+}
+.pulse:hover {
+  animation: none;
+}
+
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-box-shadow: 0 0 0 0 rgba(255, 8, 8, 0.4);
+  }
+  70% {
+    -webkit-box-shadow: 0 0 0 10px rgba(255, 8, 8, 0);
+  }
+  100% {
+    -webkit-box-shadow: 0 0 0 0 rgba(255, 8, 8, 0);
+  }
+}
+@keyframes pulse {
+  0% {
+    -moz-box-shadow: 0 0 0 0 rgba(255, 8, 8, 0.4);
+    box-shadow: 0 0 0 0 rgba(255, 8, 8, 0.4);
+  }
+  70% {
+    -moz-box-shadow: 0 0 0 10px rgba(255, 8, 8, 0);
+    box-shadow: 0 0 0 10px rgba(255, 8, 8, 0);
+  }
+  100% {
+    -moz-box-shadow: 0 0 0 0 rgba(255, 8, 8, 0);
+    box-shadow: 0 0 0 0 rgba(255, 8, 8, 0);
+  }
 }
 
 .timer-container {
