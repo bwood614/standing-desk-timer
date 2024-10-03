@@ -11,7 +11,6 @@ const runStopAudioScript = async (tabId: number) => {
         (audioEl as HTMLAudioElement).pause();
         return { success: true };
       } catch (e) {
-        console.log(e);
         return { success: false };
       }
     }

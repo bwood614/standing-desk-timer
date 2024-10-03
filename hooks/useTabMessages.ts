@@ -34,6 +34,7 @@ const useTabMessages = ({
             setIsTabActive(false);
             onTabInactive?.();
           }
+          break;
         case 'widget_state_changed':
           if (isTabActive) {
             onGlobalStateChange?.();

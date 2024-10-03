@@ -10,12 +10,10 @@ const runPlayAudioScript = async (tabId: number) => {
         let audioEl = document.getElementById(
           'alarm-audio-element'
         ) as HTMLAudioElement;
-
         await audioEl.play();
 
         return { success: true };
       } catch (e) {
-        console.log('test', e);
         return { success: false };
       }
     }

@@ -3,6 +3,7 @@ import type { PlasmoCSConfig } from 'plasmo';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import alarmAudioSrc from 'url:../alarm.wav';
 
+import useLocalTimer from '~hooks/useLocalTimer';
 import useTabMessages from '~hooks/useTabMessages';
 import { formatTime } from '~utils/timerUtils';
 
@@ -27,70 +28,42 @@ export const config: PlasmoCSConfig = {
   matches: ['<all_urls>']
 };
 
-const THRESHOLD = 30 * 1000;
-
 const WidgetBar = () => {
   // state
-  const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // refs
-  const intervalIds = useRef<NodeJS.Timeout[]>([]);
   const widgetBarRef = useRef<HTMLDivElement>();
 
   // derived state
-  const isAlarmOn = timeInMiliseconds >= THRESHOLD;
   !!widgetBarRef.current &&
     (widgetBarRef.current.style.right = isExpanded ? '0px' : '-252px');
 
-  // increments timer by 1 every second
-  // triggers alarm audio if threshold is met
-  // adds to the intervalId ref so that the interval can be canceled when the tab becomes inactive
-  const startLocalTimerInterval = () => {
-    const intervalId = setInterval(() => {
-      setTimeInMiliseconds((currTime) => {
-        const newTime = currTime + 1000;
-        // start alarm if the time is greater than the threshold and an alarm is not already started by another tab
-        if (newTime >= THRESHOLD) {
-          getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
-            if (!tabId) {
-              playGlobalAlarmAudio(alarmAudioSrc);
-            }
-          });
+  const {
+    isTimeLimitSurpassed,
+    timeInMiliseconds,
+    refreshLocalTimer,
+    cleanupTimer
+  } = useLocalTimer({
+    timeLimit: 30 * 1000,
+    onTimeLimitReached: () => {
+      getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
+        if (!tabId) {
+          playGlobalAlarmAudio(alarmAudioSrc);
         }
-        return newTime;
       });
-    }, 1000);
-    intervalIds.current?.push(intervalId);
-  };
+    }
+  });
 
-  const refreshWidgetState = useCallback(async () => {
+  const refreshWidgetState = async () => {
     const globalIsExpanded = await getGlobalWidgetState('isWidgetExpanded');
     const globalIsStanding = await getGlobalWidgetState('isStanding');
     const globalStartTime = await getGlobalWidgetState('timerStartTime');
     setIsExpanded(globalIsExpanded);
     setIsStanding(globalIsStanding);
-
-    // clear previous intervals
-    intervalIds.current?.forEach((interval) => {
-      clearInterval(interval);
-    });
-    intervalIds.current = [];
-
-    // set local timer immediately on refresh
-    const _timeInMiliseconds = Date.now() - globalStartTime;
-    setTimeInMiliseconds(_timeInMiliseconds);
-
-    // initial timeout will be some fraction of a second
-    const initialTimeout = 1000 - (_timeInMiliseconds % 1000);
-    setTimeout(() => {
-      // set local timer again after initial timeout
-      setTimeInMiliseconds(Date.now() - globalStartTime);
-      // start interval
-      startLocalTimerInterval();
-    }, initialTimeout);
-  }, [intervalIds, setIsExpanded, setIsStanding]);
+    refreshLocalTimer(globalStartTime);
+  };
 
   useTabMessages({
     onTabActive: () => {
@@ -99,16 +72,13 @@ const WidgetBar = () => {
     onTabInactive: () => {
       // turn off widget bar animation styles
       widgetBarRef.current.style.transition = 'none';
-      // clean up interval so it doesn't run in the background uneccessarily
-      intervalIds.current.forEach((interval) => {
-        clearInterval(interval);
-      });
-      intervalIds.current = [];
+      // clean up timer interval so it doesn't run in the background uneccessarily
+      cleanupTimer();
     },
     onGlobalStateChange: () => {
       refreshWidgetState();
     },
-    dependecies: [refreshWidgetState]
+    dependecies: []
   });
 
   // on component mount, refresh all local state (this handles initial page loads and reloads)
@@ -118,7 +88,7 @@ const WidgetBar = () => {
 
   return (
     <div className="widget-bar" id={'widgetBar'} ref={widgetBarRef}>
-      {isAlarmOn && <div className="pulse"></div>}
+      {isTimeLimitSurpassed && <div className="pulse"></div>}
 
       <Button
         icon={
