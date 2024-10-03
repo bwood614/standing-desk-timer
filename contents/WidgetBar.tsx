@@ -1,8 +1,10 @@
 import cssText from 'data-text:~/contents/WidgetBar.css';
 import type { PlasmoCSConfig } from 'plasmo';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import alarmAudioSrc from 'url:../alarm.wav';
 
-import type { TabMessage } from '~messaging/types';
+import useLocalTimer from '~hooks/useLocalTimer';
+import useTabMessages from '~hooks/useTabMessages';
 import { formatTime } from '~utils/timerUtils';
 
 import Button from '../components/shared/Button';
@@ -11,7 +13,9 @@ import ChevronRight from '../components/shared/icons/ChevronRight';
 import SettingsIcon from '../components/shared/icons/SettingsIcon';
 import {
   getGlobalWidgetState,
-  setGlobalWidgetState
+  playGlobalAlarmAudio,
+  setGlobalWidgetState,
+  stopGlobalAlarmAudio
 } from '../messaging/toBackground';
 
 export const getStyle = () => {
@@ -25,103 +29,67 @@ export const config: PlasmoCSConfig = {
 };
 
 const WidgetBar = () => {
-  const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
+  // state
   const [isStanding, setIsStanding] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [intervalIds, setIntervalIds] = useState<NodeJS.Timeout[]>([]);
-  const [isTabActive, setIsTabActive] = useState<boolean>(true);
+
+  // refs
   const widgetBarRef = useRef<HTMLDivElement>();
 
-  // increments timer by 1 every seconds
-  // this also sets the intervalId state so that the interval can be canceled when the tab becomes inactive
-  const startLocalTimerInterval = () => {
-    const _intervalId = setInterval(() => {
-      setTimeInMiliseconds((currTime) => currTime + 1000);
-    }, 1000);
-    setIntervalIds((current) => [...current, _intervalId]);
-  };
+  // derived state
+  !!widgetBarRef.current &&
+    (widgetBarRef.current.style.right = isExpanded ? '0px' : '-252px');
 
-  const refreshWidgetState = useCallback(async () => {
+  const {
+    isTimeLimitSurpassed,
+    timeInMiliseconds,
+    refreshLocalTimer,
+    cleanupTimer
+  } = useLocalTimer({
+    timeLimit: 30 * 1000,
+    onTimeLimitReached: () => {
+      getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
+        if (!tabId) {
+          playGlobalAlarmAudio(alarmAudioSrc);
+        }
+      });
+    }
+  });
+
+  const refreshWidgetState = async () => {
     const globalIsExpanded = await getGlobalWidgetState('isWidgetExpanded');
     const globalIsStanding = await getGlobalWidgetState('isStanding');
     const globalStartTime = await getGlobalWidgetState('timerStartTime');
     setIsExpanded(globalIsExpanded);
     setIsStanding(globalIsStanding);
+    refreshLocalTimer(globalStartTime);
+  };
 
-    // clear previous intervals
-    intervalIds.forEach((interval) => {
-      clearInterval(interval);
-    });
-
-    // set local timer immediately on refresh
-    const _timeInMiliseconds = Date.now() - globalStartTime;
-    setTimeInMiliseconds(_timeInMiliseconds);
-
-    // initial timeout will be some fraction of a second
-    const initialTimeout = 1000 - (_timeInMiliseconds % 1000);
-    setTimeout(() => {
-      // set local timer again after initial timeout
-      setTimeInMiliseconds(Date.now() - globalStartTime);
-      // start interval
-      startLocalTimerInterval();
-    }, initialTimeout);
-  }, [intervalIds, setIsExpanded, setIsStanding]);
+  useTabMessages({
+    onTabActive: () => {
+      refreshWidgetState();
+    },
+    onTabInactive: () => {
+      // turn off widget bar animation styles
+      widgetBarRef.current.style.transition = 'none';
+      // clean up timer interval so it doesn't run in the background uneccessarily
+      cleanupTimer();
+    },
+    onGlobalStateChange: () => {
+      refreshWidgetState();
+    },
+    dependecies: []
+  });
 
   // on component mount, refresh all local state (this handles initial page loads and reloads)
   useEffect(() => {
     refreshWidgetState();
   }, []);
 
-  // set up message listener to listen to messages from background script
-  useEffect(() => {
-    const handleMessage = (
-      message: TabMessage,
-      _sender: any,
-      _sendResponse: any
-    ) => {
-      switch (message.id) {
-        case 'tab_status_changed':
-          // tab bacame active
-          if (message.payload.isActive && !isTabActive) {
-            setIsTabActive(true);
-            refreshWidgetState();
-          }
-          // tab bacame inactive
-          else if (!message.payload.isActive && isTabActive) {
-            setIsTabActive(false);
-            // turn off widget bar animation styles
-            widgetBarRef.current.style.transition = 'none';
-            // clean up interval since timer will be refreshed when this tab is active again
-            intervalIds.forEach((interval) => {
-              clearInterval(interval);
-            });
-          }
-          break;
-        case 'widget_state_changed':
-          refreshWidgetState();
-          break;
-      }
-    };
-    // get a fresh messge listener on page load and when the refreshWidgetState callback is updated
-    chrome.runtime.onMessage.addListener(handleMessage);
-    return () => {
-      // clean up old listener when refreshWidgetState callback is updated
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
-  }, [refreshWidgetState, isTabActive]);
-
-  // update widget position on isExpanded updating
-  useEffect(() => {
-    const widgetBarEl = widgetBarRef.current;
-    if (isExpanded) {
-      widgetBarEl.style.right = '0px';
-    } else {
-      widgetBarEl.style.right = '-252px';
-    }
-  }, [isExpanded]);
-
   return (
     <div className="widget-bar" id={'widgetBar'} ref={widgetBarRef}>
+      {isTimeLimitSurpassed && <div className="pulse"></div>}
+
       <Button
         icon={
           isExpanded ? (
@@ -151,6 +119,7 @@ const WidgetBar = () => {
         textColor={'white'}
         backgroundColor={isStanding ? '#C1E1C1' : '#ffb9b9'}
         onClick={() => {
+          stopGlobalAlarmAudio();
           setIsStanding((current) => {
             setGlobalWidgetState({
               key: 'isStanding',
@@ -171,10 +140,7 @@ const WidgetBar = () => {
       <Button
         icon={<SettingsIcon color="grey" height={24} />}
         isTransparent
-        onClick={() => {
-          console.log('Hello');
-          alert('To settings page');
-        }}
+        onClick={() => {}}
         customStyle={{ marginRight: 6 }}
       />
     </div>

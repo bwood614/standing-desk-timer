@@ -1,8 +1,12 @@
 import type { TabMessage } from './types';
 
-export const sendTabMessage = async (tabId: number, message: TabMessage) => {
+/*
+ * Generic T is the resonse type of chrome.tabs.sendMessage
+ */
+export const sendTabMessage = <T = any>(tabId: number, message: TabMessage) => {
   try {
-    await chrome.tabs.sendMessage(tabId, message);
+    const response = chrome.tabs.sendMessage<TabMessage, T>(tabId, message);
+    return response;
   } catch (e) {
     console.log('Error sending message to tab:' + tabId, e);
   }
