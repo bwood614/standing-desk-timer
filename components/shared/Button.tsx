@@ -1,6 +1,5 @@
-import type { CSSProperties } from 'react';
-
-import type { IconProps } from './icons/IconProps';
+import { debounce as debounceFn } from 'lodash';
+import { useMemo, type CSSProperties } from 'react';
 
 interface ButtonProps {
   text?: string;
@@ -11,6 +10,7 @@ interface ButtonProps {
   textColor?: string;
   width?: number;
   customStyle?: CSSProperties;
+  debounce?: number;
 }
 
 const Button = ({
@@ -21,7 +21,8 @@ const Button = ({
   backgroundColor = '#a3c9ff',
   textColor = '#ffffff',
   width,
-  customStyle
+  customStyle,
+  debounce
 }: ButtonProps) => {
   const styles = buildStyle(
     isTransparent ? 'transparent' : backgroundColor,
@@ -31,13 +32,21 @@ const Button = ({
     customStyle
   );
 
+  // memoize debounced onClick so that rerender doesn't reset debounce
+  const modifiedOnClick = useMemo(
+    () =>
+      !!debounce
+        ? debounceFn(onClick, debounce, {
+            leading: true,
+            trailing: false
+          })
+        : onClick,
+    []
+  );
+
   return (
     <>
-      <button
-        style={styles.button}
-        onClick={() => {
-          onClick();
-        }}>
+      <button style={styles.button} onClick={modifiedOnClick}>
         {!!text && text}
         {!!icon && icon}
       </button>

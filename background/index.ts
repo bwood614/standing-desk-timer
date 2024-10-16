@@ -1,11 +1,16 @@
+import { Storage } from '@plasmohq/storage';
+
 import { sendTabMessage } from '../messaging/toContent';
 
-// state
-let activeTabs: chrome.tabs.TabActiveInfo[] = [];
+const storage = new Storage({
+  area: 'local'
+});
 
 // returns arrays of active tab updates
 const getActiveTabUpdates = async () => {
-  const prevActiveTabs = [...activeTabs];
+  const prevActiveTabs: chrome.tabs.TabActiveInfo[] =
+    (await storage.get('activeTabs')) ?? [];
+
   let newActiveTabs: chrome.tabs.TabActiveInfo[];
   try {
     newActiveTabs = (await chrome.tabs.query({ active: true })).map((tab) => ({
@@ -28,7 +33,7 @@ const getActiveTabUpdates = async () => {
     }
   });
 
-  activeTabs = newActiveTabs;
+  await storage.set('activeTabs', newActiveTabs);
   return {
     becameInactive,
     becameActive
@@ -63,6 +68,16 @@ chrome.tabs.onDetached.addListener(async (_tabId, _detachInfo) => {
 
 chrome.tabs.onAttached.addListener(async (_tabId, _attachInfo) => {
   await sendTabActiveStatusMessages();
+});
+
+// let active tabs know that the timer was updated so they can sync
+chrome.storage.onChanged.addListener(async (changes) => {
+  if (changes['timerStartTime']) {
+    const activeTabs = await chrome.tabs.query({ active: true });
+    activeTabs.forEach((tab) => {
+      sendTabMessage(tab.id, { id: 'global_timer_update' });
+    });
+  }
 });
 
 export {};
