@@ -1,8 +1,6 @@
 import type { PlasmoMessaging } from '@plasmohq/messaging';
 import { Storage } from '@plasmohq/storage';
 
-import { sendTabMessage } from '~messaging/toContent';
-
 import type { SetWidgetStateMessage } from '../../messaging/types';
 
 const handler: PlasmoMessaging.MessageHandler<SetWidgetStateMessage> = async (
@@ -14,22 +12,10 @@ const handler: PlasmoMessaging.MessageHandler<SetWidgetStateMessage> = async (
     area: 'local'
   });
 
-  const { key, value, notifyActiveTabs } = req.body;
+  const { key, value } = req.body;
 
   try {
     await storage.set(key, value);
-
-    if (notifyActiveTabs) {
-      const activeTabs = (await chrome.tabs.query({ active: true }))
-        .map((tab) => tab.id)
-        .filter((tabId) => tabId !== req?.sender?.tab?.id);
-
-      activeTabs.forEach((tabId) =>
-        sendTabMessage(tabId, {
-          id: 'widget_state_changed'
-        })
-      );
-    }
 
     res.send({ success: true });
   } catch (e) {

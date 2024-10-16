@@ -16,9 +16,11 @@ export const getRootContainer = () => {
 
 const AlarmAudio = () => {
   return (
-    <audio id="alarm-audio-element" loop>
-      <source src={alarmAudioSrc} type="audio/wav" />
-    </audio>
+    <>
+      <audio id="alarm-audio-element" loop>
+        <source src={alarmAudioSrc} type="audio/wav" />
+      </audio>
+    </>
   );
 };
 

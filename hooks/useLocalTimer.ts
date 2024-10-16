@@ -39,7 +39,7 @@ const useLocalTimer = ({
     intervalIds.current?.push(intervalId);
   };
 
-  const refreshLocalTimer = (globalStartTime: number) => {
+  const syncLocalTimer = (globalStartTime: number) => {
     clearIntervals();
 
     // set local timer immediately on refresh
@@ -59,7 +59,7 @@ const useLocalTimer = ({
   return {
     timeInMiliseconds,
     isTimeLimitSurpassed,
-    refreshLocalTimer,
+    syncLocalTimer,
     cleanupTimer: clearIntervals
   };
 };

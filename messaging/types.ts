@@ -6,7 +6,7 @@ export type TabMessage =
       };
     }
   | {
-      id: 'widget_state_changed';
+      id: 'global_timer_update';
       payload?: never;
     };
 
