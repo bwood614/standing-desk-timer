@@ -75,7 +75,10 @@ chrome.storage.onChanged.addListener(async (changes) => {
   if (changes['timerStartTime']) {
     const activeTabs = await chrome.tabs.query({ active: true });
     activeTabs.forEach((tab) => {
-      sendTabMessage(tab.id, { id: 'global_timer_update' });
+      sendTabMessage(tab.id, {
+        id: 'global_timer_update',
+        payload: { timerStartTime: changes['timerStartTime'].newValue }
+      });
     });
   }
 });

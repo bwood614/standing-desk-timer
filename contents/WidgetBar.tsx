@@ -30,6 +30,9 @@ export const config: PlasmoCSConfig = {
   matches: ['<all_urls>']
 };
 
+// TODO: set this with saved settings
+const TIMER_LIMIT = 60 * 1000;
+
 const WidgetBar = () => {
   // state
   const [isStanding, setIsStanding] = useStorage<boolean>(
@@ -57,10 +60,8 @@ const WidgetBar = () => {
 
   // refs
   const widgetBarRef = useRef<HTMLDivElement>();
-  const timerStartTimeRef = useRef<number>();
 
   // derived state
-  timerStartTimeRef.current = timerStartTime;
   !!widgetBarRef.current &&
     (widgetBarRef.current.style.right = isExpanded ? '0px' : '-252px');
 
@@ -71,10 +72,9 @@ const WidgetBar = () => {
     syncLocalTimer,
     cleanupTimer
   } = useLocalTimer({
-    timeLimit: 15 * 1000, // TODO: set this with saved settings
+    timeLimit: TIMER_LIMIT,
     onTimeLimitReached: () => {
       getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
-        console.log('@@@', tabId);
         if (!tabId) {
           playGlobalAlarmAudio(alarmAudioSrc);
         }
@@ -87,6 +87,16 @@ const WidgetBar = () => {
       onTabActive: () => {
         widgetBarRef.current.style.transition = 'right 0.3s';
         syncLocalTimer(timerStartTime);
+        // play the alarm if the time limit is surpassed AND it is not already sounding
+        // this fixes the issue of a missed play audio trigger such as when the user is on a non-url tab
+        // when the time limit is reached (extensions page, etc.)
+        if (Date.now() - timerStartTime >= TIMER_LIMIT) {
+          getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
+            if (!tabId) {
+              playGlobalAlarmAudio(alarmAudioSrc);
+            }
+          });
+        }
       },
       onTabInactive: () => {
         // turn off widget bar animation styles
@@ -94,9 +104,10 @@ const WidgetBar = () => {
         // clean up timer interval so it doesn't run in the background uneccessarily
         cleanupTimer();
       },
-      onGlobalTimerUpdate: (isTabActive) => {
+      onGlobalTimerUpdate: (isTabActive, newTimerStartTime) => {
         if (isTabActive) {
-          syncLocalTimer(timerStartTime);
+          console.log('sync timer start timer', Date.now() - timerStartTime);
+          syncLocalTimer(newTimerStartTime);
         }
       }
     },
