@@ -7,7 +7,9 @@ export type TabMessage =
     }
   | {
       id: 'global_timer_update';
-      payload?: never;
+      payload?: {
+        timerStartTime: number;
+      };
     };
 
 export type SetWidgetStateMessage =

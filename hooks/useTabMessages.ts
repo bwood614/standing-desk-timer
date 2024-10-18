@@ -5,7 +5,7 @@ import type { TabMessage } from '~messaging/types';
 interface useTabMessagesProps {
   onTabActive?: () => void;
   onTabInactive?: () => void;
-  onGlobalTimerUpdate?: (isTabActive: boolean) => void;
+  onGlobalTimerUpdate?: (isTabActive: boolean, timerStartTime: number) => void;
 }
 const useTabMessages = (
   { onTabActive, onTabInactive, onGlobalTimerUpdate }: useTabMessagesProps,
@@ -33,7 +33,7 @@ const useTabMessages = (
           }
           break;
         case 'global_timer_update':
-          onGlobalTimerUpdate?.(isTabActive);
+          onGlobalTimerUpdate?.(isTabActive, message.payload.timerStartTime);
       }
     };
     // get a fresh messge listener on page load and when the refreshWidgetState callback is updated
