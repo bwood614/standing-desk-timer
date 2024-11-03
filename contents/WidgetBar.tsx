@@ -3,6 +3,7 @@ import type { PlasmoCSConfig } from 'plasmo';
 import { useEffect, useRef } from 'react';
 import alarmAudioSrc from 'url:../alarm.wav';
 
+import { sendToBackground } from '@plasmohq/messaging';
 import { Storage } from '@plasmohq/storage';
 import { useStorage } from '@plasmohq/storage/hook';
 
@@ -157,7 +158,13 @@ const WidgetBar = () => {
       <Button
         icon={<SettingsIcon color="grey" height={24} />}
         isTransparent
-        onClick={() => {}}
+        onClick={() => {
+          sendToBackground({
+            name: 'openNewTab',
+            body: 'extension://ddamhcecacmmeokhkcmjfjgdhlfoiaje/tabs/SettingsPage.html',
+            extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje'
+          });
+        }}
         customStyle={{ marginRight: 6 }}
       />
     </div>
