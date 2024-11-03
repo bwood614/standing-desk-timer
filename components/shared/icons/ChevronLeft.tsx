@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { IconProps } from './IconProps';
 
-function SettingsIcon({ height, color }: IconProps) {
+function ChevronLeft({ height, color }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -16,4 +16,4 @@ function SettingsIcon({ height, color }: IconProps) {
   );
 }
 
-export default SettingsIcon;
+export default ChevronLeft;
