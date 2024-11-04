@@ -23,7 +23,7 @@ const SettingsSideBar = ({ sidebarGroups }: SettingsSideBarProps) => {
   const [activeItem, setActiveItem] = useState<{
     group: number;
     item: number;
-  }>({ group: 0, item: 0 });
+  }>({ group: 1, item: 0 });
 
   const isActiveItem = (group: number, item: number) => {
     return group === activeItem.group && item === activeItem.item;

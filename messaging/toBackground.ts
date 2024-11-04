@@ -2,7 +2,7 @@ import { sendToBackground } from '@plasmohq/messaging';
 
 import type { GetWidgetStateMessage, SetWidgetStateMessage } from './types';
 
-const extensionId = 'ddamhcecacmmeokhkcmjfjgdhlfoiaje';
+export const extensionId = 'ddamhcecacmmeokhkcmjfjgdhlfoiaje';
 
 export const setGlobalWidgetState = async ({
   key,

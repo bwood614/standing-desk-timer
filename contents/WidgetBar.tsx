@@ -7,6 +7,7 @@ import { sendToBackground } from '@plasmohq/messaging';
 import { Storage } from '@plasmohq/storage';
 import { useStorage } from '@plasmohq/storage/hook';
 
+import { useAppConfig } from '~hooks/useAppConfig';
 import useLocalTimer from '~hooks/useLocalTimer';
 import useTabMessages from '~hooks/useTabMessages';
 import { formatTime } from '~utils/timerUtils';
@@ -30,9 +31,6 @@ export const getStyle = () => {
 export const config: PlasmoCSConfig = {
   matches: ['<all_urls>']
 };
-
-// TODO: set this with saved settings
-const TIMER_LIMIT = 60 * 1000;
 
 const WidgetBar = () => {
   // state
@@ -59,6 +57,8 @@ const WidgetBar = () => {
     (current) => current
   );
 
+  const { appConfig } = useAppConfig();
+
   // refs
   const widgetBarRef = useRef<HTMLDivElement>();
 
@@ -73,7 +73,9 @@ const WidgetBar = () => {
     syncLocalTimer,
     cleanupTimer
   } = useLocalTimer({
-    timeLimit: TIMER_LIMIT,
+    timeLimit: isStanding
+      ? appConfig?.standingTimeLimit
+      : appConfig?.sittingTimeLimit,
     onTimeLimitReached: () => {
       getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
         if (!tabId) {
@@ -91,7 +93,13 @@ const WidgetBar = () => {
         // play the alarm if the time limit is surpassed AND it is not already sounding
         // this fixes the issue of a missed play audio trigger such as when the user is on a non-url tab
         // when the time limit is reached (extensions page, etc.)
-        if (Date.now() - timerStartTime >= TIMER_LIMIT) {
+        const isTimeLimitReached =
+          (isStanding &&
+            Date.now() - timerStartTime >= appConfig?.standingTimeLimit) ||
+          (!isStanding &&
+            Date.now() - timerStartTime >= appConfig?.sittingTimeLimit);
+
+        if (isTimeLimitReached) {
           getGlobalWidgetState('audibleAlarmTabId').then((tabId) => {
             if (!tabId) {
               playGlobalAlarmAudio(alarmAudioSrc);
@@ -112,7 +120,7 @@ const WidgetBar = () => {
         }
       }
     },
-    [timerStartTime]
+    [timerStartTime, isStanding]
   );
 
   // on component mount, syncronize local timer
