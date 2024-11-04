@@ -19,6 +19,8 @@ const TabPageContent = ({ pageName }: SettingsContentProps) => {
     case 'settings-sound':
       content = <SoundSettings />;
       break;
+    default:
+      content = <>{'Page not found'}</>;
   }
   return <div style={styles.container}>{content}</div>;
 };
@@ -26,7 +28,11 @@ const TabPageContent = ({ pageName }: SettingsContentProps) => {
 const buildStyle = (): Record<string, CSSProperties> => {
   return {
     container: {
-      padding: '70px 250px'
+      marginTop: 50,
+      margin: '70px auto 0px auto',
+      maxWidth: 950,
+      minWidth: 300,
+      padding: '0px 30px'
     }
   };
 };

@@ -12,7 +12,7 @@ export type Page = 'settings-timer' | 'settings-sound';
 
 const SettingsContainer = () => {
   const styles = buildStyle();
-  const [currentPage, setCurrentPage] = useState<Page>('settings-timer');
+  const [currentPage, setCurrentPage] = useState<Page | null>('settings-timer');
 
   const sidebarGroups: SidebarGroup[] = [
     {
@@ -23,15 +23,21 @@ const SettingsContainer = () => {
       items: [
         {
           text: "Today's Summary",
-          onClick: () => {}
+          onClick: () => {
+            setCurrentPage(null);
+          }
         },
         {
           text: 'This Month',
-          onClick: () => {}
+          onClick: () => {
+            setCurrentPage(null);
+          }
         },
         {
           text: 'This Year',
-          onClick: () => {}
+          onClick: () => {
+            setCurrentPage(null);
+          }
         }
       ]
     },
@@ -49,7 +55,9 @@ const SettingsContainer = () => {
         },
         {
           text: 'Appearance',
-          onClick: () => {}
+          onClick: () => {
+            setCurrentPage(null);
+          }
         },
         {
           text: 'Sound',
@@ -66,13 +74,22 @@ const SettingsContainer = () => {
       },
       items: [
         {
-          text: 'Profile'
+          text: 'Profile',
+          onClick: () => {
+            setCurrentPage(null);
+          }
         },
         {
-          text: 'Friends'
+          text: 'Friends',
+          onClick: () => {
+            setCurrentPage(null);
+          }
         },
         {
-          text: 'Data'
+          text: 'Data',
+          onClick: () => {
+            setCurrentPage(null);
+          }
         }
       ]
     }

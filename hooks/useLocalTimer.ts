@@ -11,8 +11,10 @@ const useLocalTimer = ({
 }: useLocalTimerProps) => {
   const [timeInMiliseconds, setTimeInMiliseconds] = useState<number>(0);
   const intervalIds = useRef<NodeJS.Timeout[]>([]);
+  const timeLimitRef = useRef<number>(timeLimit);
 
   const isTimeLimitSurpassed = timeInMiliseconds >= timeLimit;
+  timeLimitRef.current = timeLimit;
 
   const clearIntervals = () => {
     intervalIds.current?.forEach((intervalId) => {
@@ -29,8 +31,9 @@ const useLocalTimer = ({
   const startLocalTimerInterval = () => {
     const intervalId = setInterval(() => {
       setTimeInMiliseconds((currTime) => {
+        console.log('TimeLimit', timeLimitRef.current);
         const newTime = currTime + 1000;
-        if (Math.abs(newTime - timeLimit) < 500) {
+        if (Math.abs(newTime - timeLimitRef.current) < 500) {
           onTimeLimitReached?.();
         }
         return newTime;
