@@ -14,8 +14,6 @@ const handler: PlasmoMessaging.MessageHandler<AppConfig> = async (req, res) => {
   const newAppConfig = { ...currentAppConfig, ...req.body };
 
   try {
-    console.log('background: updating app config', newAppConfig);
-
     await storage.set('appConfig', newAppConfig);
 
     res.send({ success: true });

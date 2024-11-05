@@ -1,8 +1,8 @@
-import { sendToBackground } from '@plasmohq/messaging';
+import { useEffect, useState } from 'react';
+
 import { Storage } from '@plasmohq/storage';
 import { useStorage } from '@plasmohq/storage/hook';
 
-import { extensionId } from '~messaging/toBackground';
 import { defaultAppConfig, type AppConfig } from '~utils/appConfig';
 
 export const useAppConfig = () => {
@@ -21,8 +21,6 @@ export const useAppConfig = () => {
     const newAppConfig = { ...currentAppConfig, ...appConfig };
 
     try {
-      console.log('storage: updating app config', newAppConfig);
-
       await storage.set('appConfig', newAppConfig);
 
       return true;

@@ -1,5 +1,7 @@
 import { Storage } from '@plasmohq/storage';
 
+import { defaultAppConfig, type AppConfig } from '~utils/appConfig';
+
 import { sendTabMessage } from '../messaging/toContent';
 
 const storage = new Storage({
@@ -81,6 +83,16 @@ chrome.storage.onChanged.addListener(async (changes) => {
       });
     });
   }
+});
+
+// run initialization when the extension is installed
+chrome.runtime.onInstalled.addListener(async () => {
+  const storage = new Storage({
+    area: 'local'
+  });
+
+  await storage.set('appConfig', defaultAppConfig);
+  await storage.set('timerStartTime', Date.now());
 });
 
 export {};

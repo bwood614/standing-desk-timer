@@ -15,7 +15,6 @@ const NumberPicker = ({
   initialValue = 0,
   onChange
 }: NumberPickerProps) => {
-  console.log('inital value', initialValue);
   const [value, setValue] = useState(initialValue);
 
   const handleIncrement = () => {

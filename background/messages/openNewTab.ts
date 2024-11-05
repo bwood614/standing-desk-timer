@@ -4,7 +4,6 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const url = req.body;
 
   try {
-    console.log(url);
     chrome.tabs.create({ url });
     res.send(true);
   } catch (e) {

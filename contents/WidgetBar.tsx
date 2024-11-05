@@ -115,7 +115,6 @@ const WidgetBar = () => {
       },
       onGlobalTimerUpdate: (isTabActive, newTimerStartTime) => {
         if (isTabActive) {
-          console.log('sync timer start timer', Date.now() - timerStartTime);
           syncLocalTimer(newTimerStartTime);
         }
       }
@@ -169,8 +168,8 @@ const WidgetBar = () => {
         onClick={() => {
           sendToBackground({
             name: 'openNewTab',
-            body: 'extension://ddamhcecacmmeokhkcmjfjgdhlfoiaje/tabs/SettingsPage.html',
-            extensionId: 'ddamhcecacmmeokhkcmjfjgdhlfoiaje'
+            body: 'extension://daagpenjlopolphmacbbcbgldijpfimi/tabs/SettingsPage.html',
+            extensionId: 'daagpenjlopolphmacbbcbgldijpfimi'
           });
         }}
         customStyle={{ marginRight: 6 }}

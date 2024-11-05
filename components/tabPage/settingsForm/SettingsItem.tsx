@@ -1,7 +1,3 @@
-import { useAppConfig } from '~hooks/useAppConfig';
-
-import type { NumberPickerProps } from './NumberPicker';
-
 interface SettingsItemProps {
   children: JSX.Element; // Settings Interactive element (NumberPicker, ToggleSwitch, etc.)
   label?: string;

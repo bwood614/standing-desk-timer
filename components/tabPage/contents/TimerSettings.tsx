@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import Button from '~components/shared/Button';
 import NumberPicker from '~components/tabPage/settingsForm/NumberPicker';
 import { useAppConfig } from '~hooks/useAppConfig';
@@ -9,7 +11,7 @@ import ToggleSwitch from '../settingsForm/ToggleSwitch';
 
 const TimerSettings = () => {
   const { appConfig, updateAppConfig, resetDefaultAppConfig } = useAppConfig();
-
+  console.log(appConfig);
   return (
     appConfig && (
       <>

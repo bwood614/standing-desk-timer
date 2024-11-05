@@ -77,7 +77,7 @@ const buildStyle = (): Record<string, CSSProperties> => {
       gap: 10,
       paddingTop: itemPadding,
       paddingBottom: itemPadding,
-      fontSize: '1.5em',
+      fontSize: '16px',
       cursor: 'default',
       color: '#7e7e7e',
       fontWeight: '600'
@@ -90,7 +90,7 @@ const buildStyle = (): Record<string, CSSProperties> => {
       boxSizing: 'border-box'
     },
     settingsGroupItem: {
-      fontSize: '1.5em',
+      fontSize: '16px',
       cursor: 'pointer',
       paddingTop: itemPadding,
       paddingBottom: itemPadding,

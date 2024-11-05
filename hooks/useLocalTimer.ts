@@ -31,7 +31,6 @@ const useLocalTimer = ({
   const startLocalTimerInterval = () => {
     const intervalId = setInterval(() => {
       setTimeInMiliseconds((currTime) => {
-        console.log('TimeLimit', timeLimitRef.current);
         const newTime = currTime + 1000;
         if (Math.abs(newTime - timeLimitRef.current) < 500) {
           onTimeLimitReached?.();
