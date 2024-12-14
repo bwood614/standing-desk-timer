@@ -17,6 +17,7 @@ import ChevronLeft from '../components/shared/icons/ChevronLeft';
 import ChevronRight from '../components/shared/icons/ChevronRight';
 import SettingsIcon from '../components/shared/icons/SettingsIcon';
 import {
+  extensionId,
   getGlobalWidgetState,
   playGlobalAlarmAudio,
   stopGlobalAlarmAudio
@@ -168,8 +169,8 @@ const WidgetBar = () => {
         onClick={() => {
           sendToBackground({
             name: 'openNewTab',
-            body: 'extension://daagpenjlopolphmacbbcbgldijpfimi/tabs/SettingsPage.html',
-            extensionId: 'daagpenjlopolphmacbbcbgldijpfimi'
+            body: `chrome-extension://${extensionId}/tabs/SettingsPage.html`,
+            extensionId
           });
         }}
         customStyle={{ marginRight: 6 }}

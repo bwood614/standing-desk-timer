@@ -1,3 +1,4 @@
+import { DiffieHellmanGroup } from 'crypto';
 import React, { useState, type CSSProperties } from 'react';
 
 interface ToggleSwitchProps {
@@ -7,6 +8,7 @@ interface ToggleSwitchProps {
 const ToggleSwitch = ({ handleToggle }: ToggleSwitchProps) => {
   const [isOn, setIsOn] = useState<boolean>(false);
   const styles = buildStyle();
+
   return (
     <div style={styles.toggleSwitchStyles}>
       <input

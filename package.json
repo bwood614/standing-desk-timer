@@ -33,6 +33,7 @@
     "typescript-eslint": "^8.5.0"
   },
   "manifest": {
+    "key": "$CRX_KEY",
     "host_permissions": [
       "https://*/*"
     ],

@@ -6,7 +6,12 @@ interface SettingsItemProps {
 
 const SettingsItem = ({ children, label }: SettingsItemProps) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
       <p>{label}</p>
       {children}
     </div>

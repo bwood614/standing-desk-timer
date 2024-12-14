@@ -7,6 +7,7 @@ import { useAppConfig } from '~hooks/useAppConfig';
 import SettingsForm from '../settingsForm/SettingsForm';
 import SettingsItem from '../settingsForm/SettingsItem';
 import SettingsSection from '../settingsForm/SettingsSection';
+import TimePicker from '../settingsForm/TimePicker';
 import ToggleSwitch from '../settingsForm/ToggleSwitch';
 
 const TimerSettings = () => {
@@ -46,7 +47,12 @@ const TimerSettings = () => {
           <SettingsSection
             header="Daily Schedule"
             description="This determines what time the timer automatically starts in the morning ends for the day">
-            <>{'morning time\nevening time\ndefault reset state'}</>
+            <SettingsItem label="Morning start time">
+              <TimePicker />
+            </SettingsItem>
+            <SettingsItem label="Evening start time">
+              <TimePicker />
+            </SettingsItem>
           </SettingsSection>
           <SettingsSection
             header="Snooze"
